@@ -86,3 +86,13 @@ def set_parameters_to_cache(keys=None):
         keys = parameters
     for key in keys:
         cache_parameters[key] = get_parameter(key)
+
+def print_cache_parameters(keys):
+    print("Cached Parameters:")
+    if keys is None:
+        keys = parameters
+    for key in keys:
+        if key in cache_parameters:
+            print(f"{key}: {cache_parameters[key]}")
+        else:
+            print(f"{key}: Not Found!")
