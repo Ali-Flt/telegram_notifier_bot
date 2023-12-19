@@ -82,7 +82,18 @@ def help_command(message):
    keyboard = telebot.types.InlineKeyboardMarkup()
    bot.send_message(
        message.chat.id,
-       'press /start to start scheduling the notifications!',
+       'press /start to start scheduling the notifications!\n'+
+       'press /status to see the scheduling status.',
+       reply_markup=keyboard
+   )
+
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['status'])
+def help_command(message):
+   keyboard = telebot.types.InlineKeyboardMarkup()
+   bot.send_message(
+       message.chat.id,
+       f'Next Schedule: {database.get_cache_parameter('next_schedule')}'\
+       f'Schedule Interval: {database.get_cache_parameter('step')}',
        reply_markup=keyboard
    )
 
