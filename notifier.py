@@ -6,6 +6,7 @@ import sys
 import logging
 import re
 from telebot import types, logger
+import database
 import config
 
 
@@ -14,11 +15,6 @@ time.tzset()
 bot = telebot.TeleBot(config.TOKEN)
 logger.setLevel(logging.INFO)
 hour = 3600
-
-step = None
-next_schedule = None
-schedule_updated = False
-snoozed = False
 
 curr_year = datetime.now().year
 
@@ -35,20 +31,18 @@ def start_command(message):
     
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
 def get_start_date(message):
-    global next_schedule
-    next_schedule = datetime.strptime(message.text, "%Y-%m-%d %H:%M")
+    database.set_parameter('next_schedule', datetime.strptime(message.text, "%Y-%m-%d %H:%M"))
     markup = types.ForceReply(selective=False, input_field_placeholder='e.g.: 21')
     bot.send_message(message.chat.id, "How often should I notify you (in days)?:", reply_markup=markup)
         
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is not None and step is None and message.text.isnumeric())
 def get_step(message):
-    global step
-    step = timedelta(days=int(message.text))
-    bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {next_schedule}')
+    database.set_parameter('step', timedelta(days=int(message.text)))
+    database.set_parameter('message_id', message.chat.id)
+    bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {database.get_cache_parameter('next_schedule')}')
     start_schedule(message.chat.id)
 
 def start_schedule(id):
-    global step, next_schedule, schedule_updated, snoozed
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.row(
         telebot.types.InlineKeyboardButton('I did it', callback_data='I did it'),
@@ -57,24 +51,22 @@ def start_schedule(id):
     while True:
         while datetime.now() < next_schedule:
             time.sleep(config.time_check_step_hours*hour)
-        schedule_updated = False
-        snoozed = False
+        database.set_parameter('schedule_updated', False)
+        database.set_parameter('snoozed', False)
         bot.send_message(id, config.notification_message, reply_markup=keyboard)
         time.sleep(config.snooze_hours*hour)
         
 def update_next_schedule(query):
-    global next_schedule, schedule_updated, snoozed
-    if not schedule_updated:
-        next_schedule = next_schedule + step
-        schedule_updated = True
-        snoozed = True
+    if not database.get_cache_parameter('schedule_updated'):
+        database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
+        database.set_parameter('schedule_updated' True)
+        database.set_parameter('snoozed' True)
         bot.send_message(query.message.chat.id, f'Updated next schedule for {next_schedule}.')
     
 def send_snooze_message(query):
-    global snoozed
     if not snoozed:
         bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
-        snoozed = True
+        database.set_parameter('snoozed' True)
     
 @bot.callback_query_handler(func=lambda call: True)
 def iq_callback(query):
@@ -96,6 +88,10 @@ def help_command(message):
 
    
 def main_loop():
+    database.set_parameters_to_cache()
+    if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
+        start_schedule(database.get_cache_parameter('message_id'))
+
     bot.infinity_polling()
     while 1:
         time.sleep(3)
