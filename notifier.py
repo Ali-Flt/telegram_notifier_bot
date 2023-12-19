@@ -16,6 +16,17 @@ bot = telebot.TeleBot(config.TOKEN)
 logger.setLevel(logging.INFO)
 hour = 3600
 
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['reset'])
+def start_command(message):
+    bot.send_message(
+        message.chat.id,
+        'Resetting scheduling!'
+        )
+    database.reset_parameters()
+    database.set_parameters_to_cache()
+    markup = types.ForceReply(selective=False, input_field_placeholder='YYYY-MM-DD HH:MM')
+    bot.send_message(message.chat.id, "What is the starting time and date for scheduling?", reply_markup=markup)
+
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['start'])
 def start_command(message):
     bot.send_message(

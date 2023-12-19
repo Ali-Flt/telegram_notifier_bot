@@ -96,3 +96,9 @@ def print_cache_parameters(keys=None):
             print(f"{key}: {cache_parameters[key]}")
         else:
             print(f"{key}: Not Found!")
+
+def reset_parameters(keys=None):
+    if keys is None:
+        keys = parameters
+    for key in keys:
+        set_parameter(key, get_default(key))
