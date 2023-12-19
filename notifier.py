@@ -8,15 +8,13 @@ import re
 from telebot import types, logger
 import database
 import config
-
+from threading import Thread
 
 os.environ['TZ'] = config.timezone
 time.tzset()
 bot = telebot.TeleBot(config.TOKEN)
 logger.setLevel(logging.INFO)
 hour = 3600
-
-curr_year = datetime.now().year
 
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['start'])
 def start_command(message):
@@ -32,6 +30,7 @@ def start_command(message):
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name and database.get_cache_parameter('next_schedule') is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
 def get_start_date(message):
     database.set_parameter('next_schedule', message.text)
+    database.set_parameters_to_cache(['next_schedule'])
     markup = types.ForceReply(selective=False, input_field_placeholder='e.g.: 21')
     bot.send_message(message.chat.id, "How often should I notify you (in days)?:", reply_markup=markup)
         
@@ -106,8 +105,10 @@ def main_loop():
     database.set_parameters_to_cache()
     if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
         bot.send_message(database.get_cache_parameter('message_id'), f"Bot Started! Scheduling for {database.get_cache_parameter('next_schedule')}.")
-        start_schedule(database.get_cache_parameter('message_id'))
+        thread = Thread(target=start_schedule, args=(database.get_cache_parameter('message_id'),))
+        thread.start()
     bot.infinity_polling()
+    thread.join()
     while 1:
         time.sleep(3)
 

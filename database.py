@@ -3,8 +3,6 @@ from os import system, path
 from datetime import datetime, timedelta
 from random import randint
 import config
-from dateutil.parser import parse
-
 
 parameters = ['next_schedule', 'step', 'schedule_updated', 'snoozed', 'message_id']
 notifier_db = None
@@ -50,12 +48,21 @@ def get_parameter(key):
             data = get_default(key)
             my_db.set(prefix + key, str(data))
         data = check_datatype(data)
-        if key == 'next_schedule':
-            return datetime.strptime(data, "%Y-%m-%d %H:%M")
-        elif key == 'step':
-            return timedelta(days=data)
-        else:
+        if data is None:
             return data
+        if key == 'next_schedule':
+            try:
+                return datetime.strptime(data, "%Y-%m-%d %H:%M")
+            except ValueError:
+                data = get_default(key)
+                my_db.set(prefix + key, str(data))
+        elif key == 'step':
+            try:
+                return timedelta(days=data)
+            except ValueError:
+                data = get_default(key)
+                my_db.set(prefix + key, str(data))
+        return data
     else:
         return None
 
