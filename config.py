@@ -1,7 +1,0 @@
-TOKEN = 'BOT_TOKEN'
-time_check_step_hours = 1
-snooze_hours = 2
-user_name = 'TELEGRAM_USERNAME'
-timezone = 'TIMEZONE'
-notification_message = """Time is Up!
-Do the Thing!"""
