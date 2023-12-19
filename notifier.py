@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 hour = 3600
 
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['reset'])
-def start_command(message):
+def reset_command(message):
     bot.send_message(
         message.chat.id,
         'Resetting scheduling!'
@@ -67,8 +67,9 @@ def help_command(message):
    keyboard = telebot.types.InlineKeyboardMarkup()
    bot.send_message(
        message.chat.id,
-       'press /start to start scheduling the notifications!\n'+
-       'press /status to see the scheduling status.',
+       'press /start to start scheduling the notifications!\n' +
+       'press /status to see the scheduling status.\n' +
+       'press /reset to reset the scheduler.',
        reply_markup=keyboard
    )
 

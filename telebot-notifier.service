@@ -1,0 +1,13 @@
+[Unit]
+Description=Telebot Notifier
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c "docker compose -f /opt/ds160_notifier/telegram_notifier_bot/docker-compose.yml up --detach"
+ExecStop=/bin/bash -c "docker compose -f /opt/ds160_notifier/telegram_notifier_bot/docker-compose.yml stop"
+
+[Install]
+WantedBy=multi-user.target
