@@ -58,7 +58,7 @@ def get_parameter(key):
                 my_db.set(prefix + key, str(data))
         elif key == 'step':
             try:
-                return timedelta(days=data)
+                return timedelta(seconds=data)
             except ValueError:
                 data = get_default(key)
                 my_db.set(prefix + key, str(data))
@@ -87,7 +87,7 @@ def set_parameters_to_cache(keys=None):
     for key in keys:
         cache_parameters[key] = get_parameter(key)
 
-def print_cache_parameters(keys):
+def print_cache_parameters(keys=None):
     print("Cached Parameters:")
     if keys is None:
         keys = parameters

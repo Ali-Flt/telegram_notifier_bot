@@ -79,12 +79,12 @@ def start_schedule(id):
         )
     while True:
         while datetime.now() < database.get_cache_parameter('next_schedule'):
-            time.sleep(config.time_check_step_hours*hour)
+            time.sleep(50)
         database.set_parameter('schedule_updated', False)
         database.set_parameter('snoozed', False)
         database.set_parameters_to_cache(['schedule_updated', 'snoozed'])
         bot.send_message(id, config.notification_message, reply_markup=keyboard)
-        time.sleep(config.snooze_hours*hour)
+        time.sleep(20)
         
 def update_next_schedule(query):
     if not database.get_cache_parameter('schedule_updated'):
