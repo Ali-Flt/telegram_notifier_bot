@@ -59,14 +59,14 @@ def start_schedule(id):
 def update_next_schedule(query):
     if not database.get_cache_parameter('schedule_updated'):
         database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
-        database.set_parameter('schedule_updated' True)
-        database.set_parameter('snoozed' True)
+        database.set_parameter('schedule_updated', True)
+        database.set_parameter('snoozed', True)
         bot.send_message(query.message.chat.id, f'Updated next schedule for {next_schedule}.')
     
 def send_snooze_message(query):
     if not snoozed:
         bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
-        database.set_parameter('snoozed' True)
+        database.set_parameter('snoozed', True)
     
 @bot.callback_query_handler(func=lambda call: True)
 def iq_callback(query):
