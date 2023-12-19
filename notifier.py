@@ -6,6 +6,7 @@ import sys
 import logging
 import re
 from telebot import types, logger
+import config
 
 
 os.environ['TZ'] = config.timezone
