@@ -103,6 +103,7 @@ def send_snooze_message(query):
 
 def main_loop():
     database.set_parameters_to_cache()
+    database.print_cache_parameters()
     if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
         bot.send_message(database.get_cache_parameter('message_id'), f"Bot Started! Scheduling for {database.get_cache_parameter('next_schedule')}.")
         thread = Thread(target=start_schedule, args=(database.get_cache_parameter('message_id'),))
