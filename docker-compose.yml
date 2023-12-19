@@ -2,11 +2,23 @@ version: '1'
 services:
   telegram-notif-container:
     image: telegram-notif
+    restart: always
     working_dir: /app
     volumes:
       - ./:/app
     command: sh -c "python3 -u notifier.py"
     links:
       - redis_db
+      
   redis_db:
-    image: redis:latest
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache:/data
+
+volumes:
+  cache:
+    driver: local

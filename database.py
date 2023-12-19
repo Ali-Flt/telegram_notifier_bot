@@ -1,7 +1,10 @@
 from redis import Redis
 from os import system, path
+from datetime import datetime, timedelta
 from random import randint
 import config
+from dateutil.parser import parse
+
 
 parameters = ['next_schedule', 'step', 'schedule_updated', 'snoozed', 'message_id']
 notifier_db = None
@@ -17,6 +20,10 @@ def singleton():
 
 
 def get_default(key):
+    if key == 'snoozed':
+        return False
+    elif key == 'schedule_updated':
+        return False
     return None
 
 def check_datatype(value):
@@ -42,7 +49,13 @@ def get_parameter(key):
         if data is None:
             data = get_default(key)
             my_db.set(prefix + key, str(data))
-        return check_datatype(data)
+        data = check_datatype(data)
+        if key == 'next_schedule':
+            return datetime.strptime(data, "%Y-%m-%d %H:%M")
+        elif key == 'step':
+            return timedelta(days=data)
+        else:
+            return data
     else:
         return None
 
@@ -50,7 +63,6 @@ def get_parameter(key):
 def set_parameter(key, value):
     if key in parameters:
         singleton().set(prefix + key, str(value))
-        cache_parameters[key] = value
         return value
     else:
         return None
@@ -62,6 +74,8 @@ def get_cache_parameter(key):
     else:
         return None
 
-def set_parameters_to_cache():
-    for key in parameters:
+def set_parameters_to_cache(keys=None):
+    if keys is None:
+        keys = parameters
+    for key in keys:
         cache_parameters[key] = get_parameter(key)

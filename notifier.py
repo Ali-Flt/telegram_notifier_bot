@@ -31,14 +31,15 @@ def start_command(message):
     
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name and database.get_cache_parameter('next_schedule') is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
 def get_start_date(message):
-    database.set_parameter('next_schedule', datetime.strptime(message.text, "%Y-%m-%d %H:%M"))
+    database.set_parameter('next_schedule', message.text)
     markup = types.ForceReply(selective=False, input_field_placeholder='e.g.: 21')
     bot.send_message(message.chat.id, "How often should I notify you (in days)?:", reply_markup=markup)
         
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name and database.get_cache_parameter('next_schedule') is not None and database.get_cache_parameter('step') is None and message.text.isnumeric())
 def get_step(message):
-    database.set_parameter('step', timedelta(days=int(message.text)))
+    database.set_parameter('step', message.text)
     database.set_parameter('message_id', message.chat.id)
+    database.set_parameters_to_cache(['step', 'message_id'])
     bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {database.get_cache_parameter('next_schedule')}')
     start_schedule(message.chat.id)
     
@@ -82,6 +83,7 @@ def start_schedule(id):
             time.sleep(config.time_check_step_hours*hour)
         database.set_parameter('schedule_updated', False)
         database.set_parameter('snoozed', False)
+        database.set_parameters_to_cache(['schedule_updated', 'snoozed'])
         bot.send_message(id, config.notification_message, reply_markup=keyboard)
         time.sleep(config.snooze_hours*hour)
         
@@ -90,19 +92,21 @@ def update_next_schedule(query):
         database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
         database.set_parameter('schedule_updated', True)
         database.set_parameter('snoozed', True)
+        database.set_parameters_to_cache(['next_schedule', 'schedule_updated', 'snoozed'])
         bot.send_message(query.message.chat.id, f"Updated next schedule for {database.get_cache_parameter('next_schedule')}.")
     
 def send_snooze_message(query):
     if not database.get_cache_parameter('snoozed'):
         bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
         database.set_parameter('snoozed', True)
+        database.set_parameters_to_cache(['snoozed'])
 
 
 def main_loop():
     database.set_parameters_to_cache()
     if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
+        bot.send_message(database.get_cache_parameter('message_id'), f"Bot Started! Scheduling for {database.get_cache_parameter('next_schedule')}.")
         start_schedule(database.get_cache_parameter('message_id'))
-
     bot.infinity_polling()
     while 1:
         time.sleep(3)
