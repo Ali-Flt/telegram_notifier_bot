@@ -91,42 +91,49 @@ def start_schedule(id):
     while True:
         if database.get_cache_parameter('next_schedule') is not None:
             while datetime.now() < database.get_cache_parameter('next_schedule'):
-                time.sleep(50)
+                time.sleep(config.time_check_step_hours*hour)
+                if database.get_cache_parameter('next_schedule') is None:
+                    schedule_finished = True
+                    break
         else: 
+            schedule_finished = True
+        if schedule_finished:
             break
         database.set_parameter('schedule_updated', False)
         database.set_parameter('snoozed', False)
         database.set_parameters_to_cache(['schedule_updated', 'snoozed'])
         bot.send_message(id, config.notification_message, reply_markup=keyboard)
-        time.sleep(20)
+        time.sleep(snooze_hours*hour)
         
 def update_next_schedule(query):
     if not database.get_cache_parameter('schedule_updated'):
-        print(database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
         database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
         database.set_parameter('schedule_updated', True)
-        database.set_parameter('snoozed', True)
-        database.set_parameters_to_cache(['next_schedule', 'schedule_updated', 'snoozed'])
+        database.set_parameters_to_cache(['next_schedule', 'schedule_updated'])
         bot.send_message(query.message.chat.id, f"Updated next schedule for {database.get_cache_parameter('next_schedule')}.")
     else:
         bot.send_message(query.message.chat.id, f"Already updated schedule for {database.get_cache_parameter('next_schedule')}.")
     
 def send_snooze_message(query):
-    if not database.get_cache_parameter('snoozed'):
+    if not database.get_cache_parameter('snoozed') and not database.get_cache_parameter('schedule_updated'):
         database.set_parameter('snoozed', True)
         database.set_parameters_to_cache(['snoozed'])
         bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
-    else:
+    elif not database.get_cache_parameter('schedule_updated'):
         bot.send_message(query.message.chat.id, 'Already snoozed.')
+    else:
+        bot.send_message(query.message.chat.id, f"Already updated schedule for {database.get_cache_parameter('next_schedule')}.")
 
 
 def main_loop():
     database.set_parameters_to_cache()
-    database.print_cache_parameters()
     if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
         bot.send_message(database.get_cache_parameter('message_id'), f"Bot Started! Scheduling for {database.get_cache_parameter('next_schedule')}.")
         thread = Thread(target=start_schedule, args=(database.get_cache_parameter('message_id'),))
         thread.start()
+    else:
+        database.reset_parameters()
+    database.print_cache_parameters()
     bot.infinity_polling()
     thread.join()
     while 1:

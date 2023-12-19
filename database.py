@@ -61,7 +61,7 @@ def get_parameter(key):
                     my_db.set(prefix + key, str(data))
         elif key == 'step':
             try:
-                return timedelta(seconds=data)
+                return timedelta(days=data)
             except ValueError:
                 data = get_default(key)
                 my_db.set(prefix + key, str(data))
