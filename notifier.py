@@ -1,7 +1,6 @@
 import telebot
 import os
 from datetime import datetime, timedelta
-import pytz
 import time
 import sys
 import logging
@@ -62,20 +61,7 @@ def start_schedule(id):
             time.sleep(config.time_check_step_hours*hour)
         schedule_updated = False
         snoozed = False
-        bot.send_message(id,
-                         'Time is Up! Update the forms as follows:\n' +
-                         'https://ceac.state.gov/genniv/\n' +
-                         'ARMENIA\n' +
-                         'ME:\n' +
-                         'US visa appointment ID: AA00CRR56R\n' +
-                         'FALAH\n' +
-                         'MAMANA\n' +
-                         '———————————————————\n' +
-                         'MARYAM:\n' +
-                         'US visa appointment ID: AA00CRR5D9\n' +
-                         'ASGAR\n' +
-                         'MAMANA',
-                         reply_markup=keyboard)
+        bot.send_message(id, config.notification_message, reply_markup=keyboard)
         time.sleep(config.snooze_hours*hour)
         
 def update_next_schedule(query):
