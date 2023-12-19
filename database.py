@@ -31,7 +31,7 @@ def check_datatype(value):
     else:
         try:
             return int(value)
-        except ValueError:
+        except (ValueError, TypeError):
             return value
 
 
@@ -50,6 +50,7 @@ def get_parameter(key):
 def set_parameter(key, value):
     if key in parameters:
         singleton().set(prefix + key, str(value))
+        cache_parameters[key] = value
         return value
     else:
         return None

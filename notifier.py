@@ -12,7 +12,7 @@ import config
 
 os.environ['TZ'] = config.timezone
 time.tzset()
-bot = telebot.TeleBot(config.TOKEN)
+bot = telebot.TeleBot(config.TOKEN, threaded=False)
 logger.setLevel(logging.INFO)
 hour = 3600
 
@@ -88,11 +88,11 @@ def help_command(message):
    )
 
 @bot.message_handler(func=lambda message: message.from_user.username == config.user_name, commands=['status'])
-def help_command(message):
+def status_command(message):
    keyboard = telebot.types.InlineKeyboardMarkup()
    bot.send_message(
        message.chat.id,
-       f'Next Schedule: {database.get_cache_parameter('next_schedule')}'\
+       f'Next Schedule: {database.get_cache_parameter('next_schedule')}\n'\
        f'Schedule Interval: {database.get_cache_parameter('step')}',
        reply_markup=keyboard
    )
