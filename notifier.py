@@ -12,7 +12,7 @@ import config
 
 os.environ['TZ'] = config.timezone
 time.tzset()
-bot = telebot.TeleBot(config.TOKEN, threaded=False)
+bot = telebot.TeleBot(config.TOKEN)
 logger.setLevel(logging.INFO)
 hour = 3600
 
@@ -41,32 +41,6 @@ def get_step(message):
     database.set_parameter('message_id', message.chat.id)
     bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {database.get_cache_parameter('next_schedule')}')
     start_schedule(message.chat.id)
-
-def start_schedule(id):
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    keyboard.row(
-        telebot.types.InlineKeyboardButton('I did it', callback_data='I did it'),
-        telebot.types.InlineKeyboardButton('Snooze', callback_data='Snooze')
-        )
-    while True:
-        while datetime.now() < next_schedule:
-            time.sleep(config.time_check_step_hours*hour)
-        database.set_parameter('schedule_updated', False)
-        database.set_parameter('snoozed', False)
-        bot.send_message(id, config.notification_message, reply_markup=keyboard)
-        time.sleep(config.snooze_hours*hour)
-        
-def update_next_schedule(query):
-    if not database.get_cache_parameter('schedule_updated'):
-        database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
-        database.set_parameter('schedule_updated', True)
-        database.set_parameter('snoozed', True)
-        bot.send_message(query.message.chat.id, f'Updated next schedule for {next_schedule}.')
-    
-def send_snooze_message(query):
-    if not snoozed:
-        bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
-        database.set_parameter('snoozed', True)
     
 @bot.callback_query_handler(func=lambda call: True)
 def iq_callback(query):
@@ -92,12 +66,38 @@ def status_command(message):
    keyboard = telebot.types.InlineKeyboardMarkup()
    bot.send_message(
        message.chat.id,
-       f'Next Schedule: {database.get_cache_parameter('next_schedule')}\n'\
-       f'Schedule Interval: {database.get_cache_parameter('step')}',
+       f"Next Schedule: {database.get_cache_parameter('next_schedule')}\n"\
+       f"Schedule Interval: {database.get_cache_parameter('step')}",
        reply_markup=keyboard
    )
 
-   
+def start_schedule(id):
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    keyboard.row(
+        telebot.types.InlineKeyboardButton('I did it', callback_data='I did it'),
+        telebot.types.InlineKeyboardButton('Snooze', callback_data='Snooze')
+        )
+    while True:
+        while datetime.now() < database.get_cache_parameter('next_schedule'):
+            time.sleep(config.time_check_step_hours*hour)
+        database.set_parameter('schedule_updated', False)
+        database.set_parameter('snoozed', False)
+        bot.send_message(id, config.notification_message, reply_markup=keyboard)
+        time.sleep(config.snooze_hours*hour)
+        
+def update_next_schedule(query):
+    if not database.get_cache_parameter('schedule_updated'):
+        database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
+        database.set_parameter('schedule_updated', True)
+        database.set_parameter('snoozed', True)
+        bot.send_message(query.message.chat.id, f"Updated next schedule for {database.get_cache_parameter('next_schedule')}.")
+    
+def send_snooze_message(query):
+    if not database.get_cache_parameter('snoozed'):
+        bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
+        database.set_parameter('snoozed', True)
+
+
 def main_loop():
     database.set_parameters_to_cache()
     if database.get_cache_parameter('next_schedule') and database.get_cache_parameter('step'):
