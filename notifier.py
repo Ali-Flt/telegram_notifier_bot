@@ -15,7 +15,6 @@ bot = telebot.TeleBot(config.TOKEN)
 logger.setLevel(logging.INFO)
 hour = 3600
 
-previous_schedule = None
 step = None
 next_schedule = None
 schedule_updated = False
@@ -34,24 +33,22 @@ def start_command(message):
     markup = types.ForceReply(selective=False, input_field_placeholder='YYYY-MM-DD HH:MM')
     bot.send_message(message.chat.id, "What is the starting time and date for scheduling?", reply_markup=markup)
     
-@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and previous_schedule is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
 def get_start_date(message):
-    global previous_schedule
-    previous_schedule = datetime.strptime(message.text, "%Y-%m-%d %H:%M")
+    global next_schedule
+    next_schedule = datetime.strptime(message.text, "%Y-%m-%d %H:%M")
     markup = types.ForceReply(selective=False, input_field_placeholder='e.g.: 21')
     bot.send_message(message.chat.id, "How often should I notify you (in days)?:", reply_markup=markup)
         
-@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and previous_schedule is not None and step is None and message.text.isnumeric())
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is not None and step is None and message.text.isnumeric())
 def get_step(message):
-    global step, next_schedule, previous_schedule
+    global step
     step = timedelta(days=int(message.text))
-    next_schedule = previous_schedule + step
     bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {next_schedule}')
     start_schedule(message.chat.id)
 
 def start_schedule(id):
-    global previous_schedule, step, next_schedule, schedule_updated, snoozed
-    next_schedule = previous_schedule + step
+    global step, next_schedule, schedule_updated, snoozed
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.row(
         telebot.types.InlineKeyboardButton('I did it', callback_data='I did it'),
@@ -66,10 +63,9 @@ def start_schedule(id):
         time.sleep(config.snooze_hours*hour)
         
 def update_next_schedule(query):
-    global previous_schedule, next_schedule, schedule_updated, snoozed
+    global next_schedule, schedule_updated, snoozed
     if not schedule_updated:
-        previous_schedule = next_schedule
-        next_schedule = previous_schedule + step
+        next_schedule = next_schedule + step
         schedule_updated = True
         snoozed = True
         bot.send_message(query.message.chat.id, f'Updated next schedule for {next_schedule}.')
