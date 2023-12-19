@@ -117,7 +117,7 @@ def send_snooze_message(query):
         database.set_parameters_to_cache(['snoozed'])
         bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
     else:
-        bot.send_message(query.message.chat.id, f'Already snoozed.')
+        bot.send_message(query.message.chat.id, 'Already snoozed.')
 
 
 def main_loop():

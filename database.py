@@ -54,8 +54,11 @@ def get_parameter(key):
             try:
                 return datetime.strptime(data, "%Y-%m-%d %H:%M")
             except ValueError:
-                data = get_default(key)
-                my_db.set(prefix + key, str(data))
+                try:
+                    return datetime.strptime(data, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    data = get_default(key)
+                    my_db.set(prefix + key, str(data))
         elif key == 'step':
             try:
                 return timedelta(seconds=data)
