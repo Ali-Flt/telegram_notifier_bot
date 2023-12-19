@@ -83,6 +83,7 @@ def status_command(message):
    )
 
 def start_schedule(id):
+    schedule_finished = False
     keyboard = telebot.types.InlineKeyboardMarkup()
     keyboard.row(
         telebot.types.InlineKeyboardButton('I did it', callback_data='I did it'),
@@ -135,7 +136,6 @@ def main_loop():
         database.reset_parameters()
     database.print_cache_parameters()
     bot.infinity_polling()
-    thread.join()
     while 1:
         time.sleep(3)
 
