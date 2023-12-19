@@ -12,10 +12,7 @@ def singleton():
     global notifier_db
     if notifier_db is None:
         notifier_db = Redis(host='redis_db',
-            port=6379,
-            charset="utf-8",
-            decode_responses=True
-    )
+            port=6379)
     return notifier_db
 
 
@@ -67,4 +64,3 @@ def get_cache_parameter(key):
 def set_parameters_to_cache():
     for key in parameters:
         cache_parameters[key] = get_parameter(key)
-    get_buffers_weight()

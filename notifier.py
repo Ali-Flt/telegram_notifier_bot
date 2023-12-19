@@ -29,13 +29,13 @@ def start_command(message):
     markup = types.ForceReply(selective=False, input_field_placeholder='YYYY-MM-DD HH:MM')
     bot.send_message(message.chat.id, "What is the starting time and date for scheduling?", reply_markup=markup)
     
-@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and database.get_cache_parameter('next_schedule') is None and re.search("(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})", message.text))
 def get_start_date(message):
     database.set_parameter('next_schedule', datetime.strptime(message.text, "%Y-%m-%d %H:%M"))
     markup = types.ForceReply(selective=False, input_field_placeholder='e.g.: 21')
     bot.send_message(message.chat.id, "How often should I notify you (in days)?:", reply_markup=markup)
         
-@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and next_schedule is not None and step is None and message.text.isnumeric())
+@bot.message_handler(func=lambda message: message.from_user.username == config.user_name and database.get_cache_parameter('next_schedule') is not None and database.get_cache_parameter('step') is None and message.text.isnumeric())
 def get_step(message):
     database.set_parameter('step', timedelta(days=int(message.text)))
     database.set_parameter('message_id', message.chat.id)
