@@ -89,8 +89,11 @@ def start_schedule(id):
         telebot.types.InlineKeyboardButton('Snooze', callback_data='Snooze')
         )
     while True:
-        while datetime.now() < database.get_cache_parameter('next_schedule'):
-            time.sleep(50)
+        if database.get_cache_parameter('next_schedule') is not None:
+            while datetime.now() < database.get_cache_parameter('next_schedule'):
+                time.sleep(50)
+        else: 
+            break
         database.set_parameter('schedule_updated', False)
         database.set_parameter('snoozed', False)
         database.set_parameters_to_cache(['schedule_updated', 'snoozed'])
@@ -99,17 +102,22 @@ def start_schedule(id):
         
 def update_next_schedule(query):
     if not database.get_cache_parameter('schedule_updated'):
+        print(database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
         database.set_parameter('next_schedule', database.get_cache_parameter('next_schedule') + database.get_cache_parameter('step'))
         database.set_parameter('schedule_updated', True)
         database.set_parameter('snoozed', True)
         database.set_parameters_to_cache(['next_schedule', 'schedule_updated', 'snoozed'])
         bot.send_message(query.message.chat.id, f"Updated next schedule for {database.get_cache_parameter('next_schedule')}.")
+    else:
+        bot.send_message(query.message.chat.id, f"Already updated schedule for {database.get_cache_parameter('next_schedule')}.")
     
 def send_snooze_message(query):
     if not database.get_cache_parameter('snoozed'):
-        bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
         database.set_parameter('snoozed', True)
         database.set_parameters_to_cache(['snoozed'])
+        bot.send_message(query.message.chat.id, f'Snoozed for {config.snooze_hours} hours.')
+    else:
+        bot.send_message(query.message.chat.id, f'Already snoozed.')
 
 
 def main_loop():
