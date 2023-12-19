@@ -5,7 +5,7 @@ services:
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c "python3 notifier.py"
+    command: sh -c "python3 -u notifier.py"
     links:
       - redis_db
   redis_db:
