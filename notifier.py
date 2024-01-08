@@ -50,7 +50,7 @@ def get_step(message):
     database.set_parameter('step', message.text)
     database.set_parameter('message_id', message.chat.id)
     database.set_parameters_to_cache(['step', 'message_id'])
-    bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {database.get_cache_parameter('next_schedule')}')
+    bot.send_message(message.chat.id, f'Scheduling started! Next Schedule: {database.get_cache_parameter("next_schedule")}')
     start_schedule(message.chat.id)
     
 @bot.callback_query_handler(func=lambda call: True)
@@ -105,7 +105,7 @@ def start_schedule(id):
         database.set_parameter('snoozed', False)
         database.set_parameters_to_cache(['schedule_updated', 'snoozed'])
         bot.send_message(id, config.notification_message, reply_markup=keyboard)
-        time.sleep(snooze_hours*hour)
+        time.sleep(config.snooze_hours*hour)
         
 def update_next_schedule(query):
     if not database.get_cache_parameter('schedule_updated'):
