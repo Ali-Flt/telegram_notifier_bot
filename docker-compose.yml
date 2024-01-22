@@ -3,6 +3,7 @@ services:
   telegram-notif-container:
     image: telegram-notif
     restart: always
+    network_mode: "host"
     working_dir: /app
     volumes:
       - ./:/app
