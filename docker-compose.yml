@@ -1,15 +1,13 @@
 version: '1'
 services:
   telegram-notif-container:
-    image: telegram-notif
+    image: telegram_notifier_bot
     restart: always
     network_mode: "host"
     working_dir: /app
     volumes:
       - ./:/app
     command: sh -c "python3 -u notifier.py"
-    links:
-      - redis_db
     logging:
       driver: "json-file"
       options:

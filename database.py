@@ -12,7 +12,7 @@ cache_parameters = {}
 def singleton():
     global notifier_db
     if notifier_db is None:
-        notifier_db = Redis(host='redis_db',
+        notifier_db = Redis(host='localhost',
             port=6379)
     return notifier_db
 
