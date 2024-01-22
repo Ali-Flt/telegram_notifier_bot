@@ -5,3 +5,4 @@ user_name = 'TELEGRAM_USERNAME'
 timezone = 'TIMEZONE'
 notification_message = """Time is Up!
 Do the Thing!"""
+proxy = None

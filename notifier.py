@@ -9,10 +9,16 @@ from telebot import types, logger
 import database
 import config
 from threading import Thread
+from telebot import apihelper
 
 os.environ['TZ'] = config.timezone
 time.tzset()
 bot = telebot.TeleBot(config.TOKEN)
+if config.proxy:
+    apihelper.proxy = {
+    'http', config.proxy,
+    'https', config.proxy
+    }
 logger.setLevel(logging.INFO)
 hour = 3600
 
